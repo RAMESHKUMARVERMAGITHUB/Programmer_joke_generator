@@ -1,9 +1,9 @@
 pipeline {
     agent any
-    tools {
-        jdk 'jdk17'
-        nodejs 'node16'
-    }
+    // tools {
+    //     jdk 'jdk17'
+    //     nodejs 'node16'
+    // }
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
     }
@@ -15,7 +15,7 @@ pipeline {
         }
         stage('Checkout from Git') {
             steps {
-                git branch: 'master', url: 'https://github.com/RAMESHKUMARVERMAGITHUB/Programmer_joke_generator.git'
+                git branch: 'main', url: 'https://github.com/RAMESHKUMARVERMAGITHUB/Programmer_joke_generator.git'
             }
         }
         stage("Sonarqube Analysis") {
@@ -33,11 +33,11 @@ pipeline {
                 }
             }
         }
-        stage('Install Dependencies') {
-            steps {
-                sh "npm install"
-            }
-        }
+        // stage('Install Dependencies') {
+        //     steps {
+        //         sh "npm install"
+        //     }
+        // }
         stage('TRIVY FS SCAN') {
              steps {
                  sh "trivy fs . > trivyfs.txt"
@@ -59,19 +59,24 @@ pipeline {
                 sh "trivy image rameshkumarverma/programmer_joke_generator:latest > trivyimage.txt" 
             }
         }
-        stage('Deploy to Kubernets'){
+        stage("deploy_docker"){
             steps{
-                script{
-                    // dir('kubernetes') {
-                        withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
-                        sh 'kubectl delete --all pods'
-                        sh 'kubectl apply -f deployment.yml'
-                        sh 'kubectl apply -f service.yml'
-                        }   
-                    // }
-                }
+                sh "docker run -d --name programmer_joke_generator -p 80:80 rameshkumarverma/programmer_joke_generator"
             }
         }
+        // stage('Deploy to Kubernets'){
+        //     steps{
+        //         script{
+        //             // dir('kubernetes') {
+        //                 withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
+        //                 sh 'kubectl delete --all pods'
+        //                 sh 'kubectl apply -f deployment.yml'
+        //                 sh 'kubectl apply -f service.yml'
+        //                 }   
+        //             // }
+        //         }
+        //     }
+        // }
     }
     // post {
     //  always {
